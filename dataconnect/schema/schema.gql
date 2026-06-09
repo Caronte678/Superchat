@@ -1,0 +1,34 @@
+type User @table {
+  username: String!
+  email: String!
+  createdAt: Timestamp!
+  avatarUrl: String
+  bio: String
+}
+
+type Profile @table {
+  user: User!
+  lastLoginAt: Timestamp
+  statusMessage: String
+}
+
+type ChatRoom @table {
+  name: String!
+  description: String
+  isPrivate: Boolean
+  createdAt: Timestamp!
+  creator: User!
+}
+
+type Message @table {
+  content: String!
+  createdAt: Timestamp!
+  room: ChatRoom!
+  sender: User!
+}
+
+type RoomMember @table(key: ["user", "room"]) {
+  user: User!
+  room: ChatRoom!
+  joinedAt: Timestamp!
+}

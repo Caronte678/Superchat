@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superchat - Login</title>
+    <link rel="stylesheet" href="login-style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <div class="header">
+                <h1>Superchat</h1>
+                <p>Inicia sesión o crea una cuenta</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="login">Iniciar Sesión</button>
+                <button class="tab-btn" data-tab="register">Registrarse</button>
+            </div>
+
+            <!-- LOGIN -->
+            <form id="login-form" class="tab-content active">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input 
+                        type="email" 
+                        id="login-email" 
+                        placeholder="tu@email.com" 
+                        required
+                    >
+                    <span class="error" id="login-email-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <div class="password-field">
+                        <input 
+                            type="password" 
+                            id="login-password" 
+                            placeholder="••••••••" 
+                            required
+                        >
+                        <button type="button" class="toggle-password" data-input="login-password">👁️</button>
+                    </div>
+                    <span class="error" id="login-password-error"></span>
+                </div>
+
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="remember-me">
+                    <label for="remember-me">Recuérdame</label>
+                </div>
+
+                <button type="submit" class="btn-submit">Inicia Sesión</button>
+                <span class="error" id="login-error"></span>
+            </form>
+
+            <!-- REGISTER -->
+            <form id="register-form" class="tab-content">
+                <div class="form-group">
+                    <label for="register-username">Nombre de usuario</label>
+                    <input 
+                        type="text" 
+                        id="register-username" 
+                        placeholder="tu_usuario" 
+                        required
+                    >
+                    <span class="error" id="username-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input 
+                        type="email" 
+                        id="register-email" 
+                        placeholder="tu@email.com" 
+                        required
+                    >
+                    <span class="error" id="register-email-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="register-password">Contraseña</label>
+                    <div class="password-field">
+                        <input 
+                            type="password" 
+                            id="register-password" 
+                            placeholder="••••••••" 
+                            required
+                        >
+                        <button type="button" class="toggle-password" data-input="register-password">👁️</button>
+                    </div>
+                    <span class="error" id="register-password-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="register-confirm">Confirmar contraseña</label>
+                    <div class="password-field">
+                        <input 
+                            type="password" 
+                            id="register-confirm" 
+                            placeholder="••••••••" 
+                            required
+                        >
+                        <button type="button" class="toggle-password" data-input="register-confirm">👁️</button>
+                    </div>
+                    <span class="error" id="confirm-error"></span>
+                </div>
+
+                <div class="password-requirements">
+                    <p>La contraseña debe contener:</p>
+                    <ul>
+                        <li id="req-length">✓ Mínimo 8 caracteres</li>
+                        <li id="req-upper">✓ Al menos una mayúscula</li>
+                        <li id="req-lower">✓ Al menos una minúscula</li>
+                        <li id="req-number">✓ Al menos un número</li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="btn-submit">Crear Cuenta</button>
+                <span class="error" id="register-error"></span>
+            </form>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Superchat. Todos los derechos reservados.</p>
+        </div>
+    </div>
+
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="login.js"></script>
+</body>
+</html>

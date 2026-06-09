@@ -1,0 +1,32 @@
+mutation CreateSeedData @transaction {
+  user_insertMany(data: [
+    {
+      id: "71c08000-0000-0000-0000-000000000001",
+      username: "alice",
+      email: "alice@example.com",
+      createdAt: "2023-01-01T00:00:00Z"
+    },
+    {
+      id: "71c08000-0000-0000-0000-000000000002",
+      username: "bob",
+      email: "bob@example.com",
+      createdAt: "2023-01-01T00:00:00Z"
+    }
+  ])
+  chatRoom_insertMany(data: [
+    {
+      id: "82d09000-0000-0000-0000-000000000001",
+      name: "General Chat",
+      createdAt: "2023-01-02T00:00:00Z",
+      creatorId: "71c08000-0000-0000-0000-000000000001"
+    }
+  ])
+  message_insertMany(data: [
+    {
+      content: "Hello everyone!",
+      createdAt: "2023-01-02T01:00:00Z",
+      roomId: "82d09000-0000-0000-0000-000000000001",
+      senderId: "71c08000-0000-0000-0000-000000000001"
+    }
+  ])
+}

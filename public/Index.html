@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superchat</title>
+    <script src="https://cdn.jsdelivr.net/npm/emoji-js@3.9.0/lib/emoji.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-js@3.9.0/lib/emoji.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="auth.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ─── PANEL DE SALAS ─────────────────────── -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Salas</h3>
+            <button id="btn-nueva-sala" class="btn-nueva-sala" title="Crear sala">➕</button>
+        </div>
+        <div id="salas-container" class="salas-container"></div>
+    </aside>
+
+    <!-- ─── CONTENEDOR PRINCIPAL ──────────────── -->
+    <div class="main-container">
+        <header>
+            <div class="header-content">
+                <div class="header-title">
+                    <span id="sala-actual-title">Superchat</span>
+                </div>
+                <span class="subtitle">En línea</span>
+            </div>
+            <div class="header-user">
+                <span id="usuario-nombre">Usuario</span>
+                <button id="btn-logout" class="btn-logout" title="Cerrar sesión">🚪</button>
+            </div>
+        </header>
+
+        <div id="chat-container"></div>
+
+        <!-- Picker de emojis -->
+        <div id="emoji-picker"></div>
+
+        <form id="form-container">
+            <input type="file" id="image-input" accept="image/*" style="display:none">
+            <input type="file" id="file-input" style="display:none">
+
+            <button type="button" id="btn-image" class="btn-icon" title="Enviar imagen">📷</button>
+            <button type="button" id="btn-file" class="btn-icon" title="Enviar archivo">📎</button>
+            <button type="button" id="btn-record" class="btn-icon" title="Grabar audio">🎤</button>
+            <button type="button" id="btn-emoji" class="btn-icon" title="Emojis">😀</button>
+
+            <input type="text" id="message-input" placeholder="Escribe tu mensaje..." autocomplete="off">
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <script type="module" src="chat.js"></script>
+</body>
+</html>

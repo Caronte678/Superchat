@@ -1,0 +1,28 @@
+mutation CreateChatRoom($data: ChatRoom_Data!) @auth(level: USER) {
+  chatRoom_insert(data: $data)
+}
+
+query ListChatRooms @auth(level: USER) {
+  chatRooms {
+    id
+    name
+    description
+    creator {
+      username
+    }
+  }
+}
+
+mutation SendMessage($data: Message_Data!) @auth(level: USER) {
+  message_insert(data: $data)
+}
+
+query GetRoomMessages($roomId: UUID!) @auth(level: USER) {
+  messages(where: { roomId: { eq: $roomId } }, orderBy: [{ createdAt: DESC }]) {
+    content
+    createdAt
+    sender {
+      username
+    }
+  }
+}
