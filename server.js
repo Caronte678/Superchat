@@ -27,7 +27,11 @@ io.on('connection', (socket) => {
 
     //escuchar cuando el usuario defina su nombre
     socket.on('nuevoUsuario', (nombre) => {
-        socket.username = nombre;
+        // Defensa adicional: si por alguna razón el cliente envía un nombre
+        // vacío/undefined (ej. caché de navegador con código viejo), no
+        // dejamos socket.username como undefined para evitar el bug
+        // "undefined se ha unido a la sala" / mensajes sin nombre.
+        socket.username = (nombre && nombre.trim()) ? nombre.trim() : `Usuario-${socket.id.slice(0, 5)}`;
         // Enviar lista inicial de salas
         socket.emit('actualizar-salas', Array.from(salas.entries()).map(([nombre, data]) => ({
             nombre,

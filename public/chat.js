@@ -22,14 +22,20 @@ async function ensureAuthenticated() {
         }, 5000);
         
         const checkInterval = setInterval(() => {
+            // Esperamos a que authReady sea true: recién ahí this.user
+            // está garantizado con un username válido (o confirmado null).
+            // Antes de esto, getCurrentUser() podía devolver un valor
+            // cacheado en localStorage sin username, causando que el
+            // servidor recibiera socket.username = undefined.
+            if (!auth.isAuthReady()) return;
+
+            clearInterval(checkInterval);
+            clearTimeout(timeout);
+
             const currentUser = auth.getCurrentUser();
-            if (currentUser) {
-                clearInterval(checkInterval);
-                clearTimeout(timeout);
+            if (currentUser && currentUser.username) {
                 resolve(currentUser);
-            } else if (!auth.isAuthenticated()) {
-                clearInterval(checkInterval);
-                clearTimeout(timeout);
+            } else {
                 window.location.href = '/login.html';
                 reject(new Error('Not authenticated'));
             }

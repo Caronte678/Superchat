@@ -19,6 +19,7 @@ class Auth {
     constructor() {
         this.storageKey = 'superchat_user';
         this.user = null;
+        this.authReady = false; // true solo cuando this.user ya quedó resuelto (con username) o confirmado null
         this.setupAuthStateListener();
     }
 
@@ -49,11 +50,20 @@ class Auth {
                     localStorage.setItem(this.storageKey, JSON.stringify(this.user));
                 } catch (error) {
                     console.error('Error al obtener datos del usuario:', error);
+                    // Aunque falle la consulta a Database, no dejamos username vacío:
+                    // usamos el prefijo del email como respaldo para no romper el chat.
+                    this.user = {
+                        id: user.uid,
+                        email: user.email,
+                        username: user.email.split('@')[0],
+                        loginAt: new Date().toISOString()
+                    };
                 }
             } else {
                 this.user = null;
                 localStorage.removeItem(this.storageKey);
             }
+            this.authReady = true; // recién aquí está garantizado que this.user tiene username (o es null)
         });
     }
 
@@ -166,6 +176,11 @@ class Auth {
         if (this.user) return this.user;
         const session = localStorage.getItem(this.storageKey);
         return session ? JSON.parse(session) : null;
+    }
+
+    // True solo cuando this.user ya fue resuelto desde Firebase (con username garantizado) o confirmado como null
+    isAuthReady() {
+        return this.authReady;
     }
 
     // Verificar si está autenticado
