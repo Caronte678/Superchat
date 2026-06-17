@@ -1,5 +1,8 @@
 // ─── VERIFICAR AUTENTICACIÓN ──────────────────
 
+import { database } from './firebase-config.js';
+import { ref, push, query, orderByChild, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
 // Esperar a que el objeto auth esté disponible
 async function waitForAuth() {
     return new Promise((resolve) => {
@@ -69,7 +72,6 @@ const btnLogout = document.getElementById('btn-logout');
 const usuarioNombre = document.getElementById('usuario-nombre');
 const emojiPicker = document.getElementById('emoji-picker');
 const salasContainer = document.getElementById('salas-container');
-const btnNuevaSala = document.getElementById('btn-nueva-sala');
 const salasActualTitle = document.getElementById('sala-actual-title');
 const emoji = new EmojiConvertor();
 emoji.replace_mode = 'unified';
@@ -170,58 +172,106 @@ function renderizarSalas() {
     usuarios.textContent = sala.usuarios;
     div.appendChild(usuarios);
 
-    // Botón de eliminar si es creador
-    if (sala.creador === miSocketId && sala.nombre !== 'General') {
-      const btnEliminar = document.createElement('button');
-      btnEliminar.classList.add('btn-eliminar-sala');
-      btnEliminar.textContent = '✕';
-      btnEliminar.title = 'Eliminar sala';
-      btnEliminar.addEventListener('click', (e) => {
-        e.stopPropagation();
-        Swal.fire({
-          title: '¿Eliminar sala?',
-          text: `Estás a punto de eliminar "${sala.nombre}"`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            socket.emit('eliminar-sala', sala.nombre);
-          }
-        });
-      });
-      div.appendChild(btnEliminar);
-    }
-
     salasContainer.appendChild(div);
   });
 }
 
-btnNuevaSala.addEventListener('click', () => {
-  Swal.fire({
-    title: 'Crear nueva sala',
-    input: 'text',
-    inputLabel: 'Nombre de la sala',
-    inputPlaceholder: 'Escribe el nombre...',
-    showCancelButton: true,
-    confirmButtonText: 'Crear',
-    cancelButtonText: 'Cancelar',
-    inputValidator: (value) => {
-      if (!value || !value.trim()) {
-        return 'Por favor, ingresa un nombre';
-      }
-      if (salasDisponibles.some(s => s.nombre === value.trim())) {
-        return 'Esta sala ya existe';
-      }
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const nombreSala = result.value.trim();
-      socket.emit('crear-sala', nombreSala);
-    }
+/* ─── PERSISTENCIA DE MENSAJES EN FIREBASE ────── */
+// Cada mensaje se guarda bajo mensajes/{nombreSala}/{id-autogenerado}.
+// El guardado lo hace el navegador de quien envía el mensaje (no quien lo
+// recibe), para evitar que el mismo mensaje se escriba varias veces si hay
+// varias personas en la sala.
+function guardarMensaje(nombreSala, tipo, payload) {
+  const refSala = ref(database, `mensajes/${nombreSala}`);
+  push(refSala, {
+    tipo, // 'texto' | 'imagen' | 'audio' | 'archivo'
+    ...payload,
+    timestamp: Date.now()
+  }).catch((error) => {
+    console.error('Error al guardar mensaje en Firebase:', error);
   });
-});
+}
+
+// Trae el historial guardado de una sala y lo renderiza en orden cronológico.
+async function cargarHistorial(nombreSala) {
+  try {
+    const refSala = ref(database, `mensajes/${nombreSala}`);
+    const consulta = query(refSala, orderByChild('timestamp'));
+    const snapshot = await get(consulta);
+
+    chatContainer.innerHTML = '';
+    if (!snapshot.exists()) return;
+
+    snapshot.forEach((child) => {
+      renderizarMensajeGuardado(child.val());
+    });
+    scrollAbajo();
+  } catch (error) {
+    console.error('Error al cargar historial de la sala:', error);
+  }
+}
+
+// Renderiza un mensaje ya guardado (viene de Firebase, no de socket.io en vivo).
+function renderizarMensajeGuardado(data) {
+  switch (data.tipo) {
+    case 'texto': {
+      const esPropio = data.usuario === miNombre;
+      const div = crearBurbuja(data.usuario, esPropio, data.hora);
+      const contenedor = document.createElement('span');
+      contenedor.innerHTML = procesarEmojis(data.mensaje);
+      div.appendChild(contenedor);
+      agregarHora(div, data.hora);
+      chatContainer.appendChild(div);
+      break;
+    }
+    case 'imagen': {
+      const esPropio = data.usuario === miNombre;
+      const div = crearBurbuja(data.usuario, esPropio, data.hora);
+      const img = document.createElement('img');
+      img.src = data.imagen;
+      img.classList.add('chat-img');
+      img.alt = `Imagen de ${data.usuario}`;
+      img.addEventListener('click', () => window.open(data.imagen, '_blank'));
+      div.appendChild(img);
+      agregarHora(div, data.hora);
+      chatContainer.appendChild(div);
+      break;
+    }
+    case 'audio': {
+      const esPropio = data.usuario === miNombre;
+      const div = crearBurbuja(data.usuario, esPropio, data.hora);
+      const audio = document.createElement('audio');
+      audio.src = data.audio;
+      audio.controls = true;
+      audio.classList.add('chat-audio');
+      div.appendChild(audio);
+      agregarHora(div, data.hora);
+      chatContainer.appendChild(div);
+      break;
+    }
+    case 'archivo': {
+      const esPropio = data.usuario === miNombre;
+      const div = crearBurbuja(data.usuario, esPropio, data.hora);
+      const contenedor = document.createElement('div');
+      contenedor.classList.add('chat-archivo');
+      const enlace = document.createElement('a');
+      enlace.href = data.datos;
+      enlace.download = data.nombre;
+      enlace.textContent = `📥 ${data.nombre}`;
+      enlace.classList.add('archivo-link');
+      enlace.title = `Tamaño: ${(data.tamaño / 1024).toFixed(2)} KB`;
+      contenedor.appendChild(enlace);
+      const tamaño = document.createElement('span');
+      tamaño.classList.add('archivo-tamaño');
+      tamaño.textContent = `(${(data.tamaño / 1024).toFixed(2)} KB)`;
+      contenedor.appendChild(tamaño);
+      div.appendChild(contenedor);
+      agregarHora(div, data.hora);
+      chatContainer.appendChild(div);
+      break;
+    }
+  }
+}
 
 /* ─── ENVÍO DE TEXTO ──────────────────────────── */
 form.addEventListener('submit', (e) => {
@@ -353,6 +403,11 @@ socket.on('mensaje-chat', (data) => {
   agregarHora(div, data.hora);
   chatContainer.appendChild(div);
   scrollAbajo();
+
+  // Solo quien envió el mensaje lo guarda, para no duplicarlo en Firebase.
+  if (esPropio) {
+    guardarMensaje(salaActual, 'texto', { usuario: data.usuario, mensaje: data.mensaje, hora: data.hora });
+  }
 });
  
 /* ─── RECIBIR IMAGEN ──────────────────────────── */
@@ -370,6 +425,10 @@ socket.on('mensaje-imagen', (data) => {
   agregarHora(div, data.hora);
   chatContainer.appendChild(div);
   scrollAbajo();
+
+  if (esPropio) {
+    guardarMensaje(salaActual, 'imagen', { usuario: data.usuario, imagen: data.imagen, hora: data.hora });
+  }
 });
  
 /* ─── RECIBIR AUDIO ───────────────────────────── */
@@ -386,6 +445,10 @@ socket.on('mensaje-audio', (data) => {
   agregarHora(div, data.hora);
   chatContainer.appendChild(div);
   scrollAbajo();
+
+  if (esPropio) {
+    guardarMensaje(salaActual, 'audio', { usuario: data.usuario, audio: data.audio, hora: data.hora });
+  }
 });
 
 /* ─── RECIBIR ARCHIVO ────────────────────────── */
@@ -413,6 +476,17 @@ socket.on('mensaje-archivo', (data) => {
   agregarHora(div, data.hora);
   chatContainer.appendChild(div);
   scrollAbajo();
+
+  if (esPropio) {
+    guardarMensaje(salaActual, 'archivo', {
+      usuario: data.usuario,
+      nombre: data.nombre,
+      tipo: data.tipo,
+      tamaño: data.tamaño,
+      datos: data.datos,
+      hora: data.hora
+    });
+  }
 });
  
 /* ─── MENSAJES DE SISTEMA ─────────────────────── */
@@ -437,7 +511,7 @@ socket.on('actualizar-salas', (salas) => {
 socket.on('sala-actual', (nombreSala) => {
   salaActual = nombreSala;
   salasActualTitle.textContent = nombreSala;
-  chatContainer.innerHTML = ''; // Limpiar historial al cambiar de sala
+  cargarHistorial(nombreSala); // trae y renderiza el historial guardado de la sala
   renderizarSalas();
 });
 
@@ -448,9 +522,4 @@ socket.on('error-sala', (mensaje) => {
     text: mensaje,
     confirmButtonText: 'Entendido'
   });
-});
-
-socket.on('sala-eliminada', () => {
-  chatContainer.innerHTML = '';
-  socket.emit('unirse-sala', 'General');
 });

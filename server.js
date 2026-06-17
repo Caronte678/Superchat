@@ -17,10 +17,12 @@ app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
 
-// Estructura para almacenar salas: { nombreSala: { creador: userId, usuarios: Set } }
+// Salas predeterminadas y fijas: no se pueden crear ni eliminar más.
+const NOMBRES_SALAS_FIJAS = ['General', 'Juegos', 'Lectura', 'Musica'];
 const salas = new Map();
-// Sala por defecto
-salas.set('General', { creador: 'system', usuarios: new Set() });
+NOMBRES_SALAS_FIJAS.forEach(nombre => {
+    salas.set(nombre, { creador: 'system', usuarios: new Set() });
+});
 
 io.on('connection', (socket) => {
     console.log(`Un usuario se ha conectado (ID: ${socket.id})`);
@@ -32,7 +34,7 @@ io.on('connection', (socket) => {
         // dejamos socket.username como undefined para evitar el bug
         // "undefined se ha unido a la sala" / mensajes sin nombre.
         socket.username = (nombre && nombre.trim()) ? nombre.trim() : `Usuario-${socket.id.slice(0, 5)}`;
-        // Enviar lista inicial de salas
+        // Enviar lista de salas (fija)
         socket.emit('actualizar-salas', Array.from(salas.entries()).map(([nombre, data]) => ({
             nombre,
             creador: data.creador,
@@ -43,46 +45,8 @@ io.on('connection', (socket) => {
     });
 
     // ─── GESTIÓN DE SALAS ─────────────────────
-    socket.on('crear-sala', (nombreSala) => {
-        if (!salas.has(nombreSala)) {
-            salas.set(nombreSala, { creador: socket.id, usuarios: new Set() });
-            // Notificar a todos sobre la nueva sala
-            io.emit('actualizar-salas', Array.from(salas.entries()).map(([nombre, data]) => ({
-                nombre,
-                creador: data.creador,
-                usuarios: data.usuarios.size
-            })));
-            io.emit('mensaje-sistema', `Sala "${nombreSala}" fue creada`);
-            console.log(`Sala "${nombreSala}" creada por ${socket.username}`);
-        } else {
-            socket.emit('error-sala', `La sala "${nombreSala}" ya existe`);
-        }
-    });
-
-    socket.on('eliminar-sala', (nombreSala) => {
-        const sala = salas.get(nombreSala);
-        if (sala && sala.creador === socket.id) {
-            // Notificar a usuarios en la sala antes de eliminarla
-            io.to(nombreSala).emit('mensaje-sistema', `La sala "${nombreSala}" ha sido eliminada`);
-            io.to(nombreSala).emit('sala-eliminada');
-            // Hacer que salgan de la sala
-            io.sockets.sockets.forEach(s => {
-                if (s.rooms.has(nombreSala)) {
-                    s.leave(nombreSala);
-                }
-            });
-            salas.delete(nombreSala);
-            io.emit('actualizar-salas', Array.from(salas.entries()).map(([nombre, data]) => ({
-                nombre,
-                creador: data.creador,
-                usuarios: data.usuarios.size
-            })));
-            io.emit('mensaje-sistema', `Sala "${nombreSala}" fue eliminada`);
-            console.log(`Sala "${nombreSala}" eliminada`);
-        } else {
-            socket.emit('error-sala', `No tienes permiso para eliminar esta sala`);
-        }
-    });
+    // Las salas son fijas (General, Juegos, Lectura, Musica): no se permite
+    // crear ni eliminar salas nuevas.
 
     socket.on('unirse-sala', (nombreSala) => {
         if (salas.has(nombreSala)) {
