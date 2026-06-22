@@ -160,12 +160,19 @@ function renderizarSalas() {
       div.classList.add('activa');
     }
 
+    // Add click event to the whole item instead of just the name
+    div.addEventListener('click', () => {
+      socket.emit('unirse-sala', sala.nombre);
+    });
+
+    const icon = document.createElement('span');
+    icon.classList.add('sala-icon');
+    icon.textContent = sala.nombre.charAt(0).toUpperCase();
+    div.appendChild(icon);
+
     const nombre = document.createElement('span');
     nombre.classList.add('sala-nombre');
     nombre.textContent = sala.nombre;
-    nombre.addEventListener('click', () => {
-      socket.emit('unirse-sala', sala.nombre);
-    });
     div.appendChild(nombre);
 
     // Mostrar número de usuarios
