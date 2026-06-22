@@ -24,6 +24,9 @@ NOMBRES_SALAS_FIJAS.forEach(nombre => {
     salas.set(nombre, { creador: 'system', usuarios: new Set() });
 });
 
+// Notas globales de estado (estilo Instagram)
+const notasGlobales = new Map();
+
 io.on('connection', (socket) => {
     console.log(`Un usuario se ha conectado (ID: ${socket.id})`);
 
@@ -42,6 +45,23 @@ io.on('connection', (socket) => {
         })));
         // Avisar a todos que se unió
         io.emit('mensaje-sistema', `${socket.username} se ha conectado`);
+        
+        // Enviar notas globales al nuevo usuario
+        socket.emit('actualizar-notas', Array.from(notasGlobales.values()));
+    });
+
+    // ─── GESTIÓN DE NOTAS DE ESTADO ───────────
+    socket.on('nueva-nota', (texto) => {
+        if (texto && texto.trim() !== '') {
+            notasGlobales.set(socket.username, {
+                usuario: socket.username,
+                texto: texto.trim(),
+                timestamp: Date.now()
+            });
+        } else {
+            notasGlobales.delete(socket.username); // Si envía vacío, borra la nota
+        }
+        io.emit('actualizar-notas', Array.from(notasGlobales.values()));
     });
 
     // ─── GESTIÓN DE SALAS ─────────────────────
@@ -169,6 +189,12 @@ io.on('connection', (socket) => {
                 creador: data.creador,
                 usuarios: data.usuarios.size
             })));
+
+            // Borrar nota global al salir
+            if (notasGlobales.has(socket.username)) {
+                notasGlobales.delete(socket.username);
+                io.emit('actualizar-notas', Array.from(notasGlobales.values()));
+            }
         }
     });
 

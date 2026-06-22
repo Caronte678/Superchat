@@ -7,23 +7,24 @@
 }
 
 :root {
-    --bg:          #0d1117;
-    --surface:     #161b22;
-    --surface2:    #21262d;
-    --border:      #30363d;
-    --accent:      #00d084;
-    --accent-dim:  #00d08422;
-    --accent2:     #0af0b0;
-    --text:        #e6edf3;
-    --text-muted:  #7d8590;
-    --success:     #3fb950;
-    --error:       #f85149;
-    --shadow:      0 8px 32px rgba(0,0,0,0.5);
-    --radius:      16px;
-    --radius-sm:   8px;
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #00d084;
+    --accent-dim: #00d08422;
+    --accent2: #0af0b0;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --success: #3fb950;
+    --error: #f85149;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --radius: 16px;
+    --radius-sm: 8px;
 }
 
-html, body {
+html,
+body {
     height: 100%;
     width: 100%;
 }
@@ -40,8 +41,8 @@ body {
     padding: 20px;
 
     background-image:
-        linear-gradient(rgba(0,208,132,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,208,132,0.03) 1px, transparent 1px);
+        linear-gradient(rgba(0, 208, 132, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 208, 132, 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
 }
 
@@ -70,6 +71,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -144,6 +146,7 @@ body {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -176,6 +179,27 @@ body {
     font-size: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
     font-family: inherit;
+}
+
+/* ─── ÍCONO QR EN EL HEADER ──────────────────── */
+.qr-code {
+    width: 150px;
+    height: 150px;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    margin-top: 16px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    padding: 6px;
+    background: var(--surface2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qr-code:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 208, 132, 0.15);
 }
 
 .form-group input[type="text"]:focus,
@@ -248,9 +272,19 @@ body {
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
 }
 
 /* ─── PASSWORD REQUIREMENTS ──────────────────── */
@@ -351,5 +385,10 @@ body {
     .tab-btn {
         font-size: 0.9rem;
         padding: 10px 12px;
+    }
+
+    .qr-code {
+        width: 80px;
+        height: 80px;
     }
 }

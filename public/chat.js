@@ -73,6 +73,7 @@ const usuarioNombre = document.getElementById('usuario-nombre');
 const emojiPicker = document.getElementById('emoji-picker');
 const salasContainer = document.getElementById('salas-container');
 const salasActualTitle = document.getElementById('sala-actual-title');
+const notesContainer = document.getElementById('notes-container');
 const emoji = new EmojiConvertor();
 emoji.replace_mode = 'unified';
 emoji.allow_native = true;
@@ -102,6 +103,7 @@ let miNombre = currentUser.username;
 let salaActual = 'General';
 let miSocketId = null;
 let salasDisponibles = [];
+let notasGlobales = [];
 let mediaRecorder = null;
 let grabando = false;
 let audioChunks = [];
@@ -522,4 +524,76 @@ socket.on('error-sala', (mensaje) => {
     text: mensaje,
     confirmButtonText: 'Entendido'
   });
+});
+
+/* ─── NOTAS DE ESTADO (INSTAGRAM STYLE) ─────── */
+function renderizarNotas() {
+  notesContainer.innerHTML = '';
+
+  // 1. Siempre la opción de "Mi Nota" de primero
+  const miNotaDiv = document.createElement('div');
+  miNotaDiv.classList.add('note-item', 'mi-nota');
+  
+  const miAvatar = document.createElement('div');
+  miAvatar.classList.add('note-avatar');
+  miAvatar.textContent = '+';
+  miNotaDiv.appendChild(miAvatar);
+
+  // Buscar si yo ya tengo una nota para mostrarla en mi avatar
+  const miNotaObj = notasGlobales.find(n => n.usuario === miNombre);
+  if (miNotaObj) {
+    const bubble = document.createElement('div');
+    bubble.classList.add('note-bubble');
+    bubble.innerHTML = procesarEmojis(miNotaObj.texto);
+    miNotaDiv.appendChild(bubble);
+    miAvatar.textContent = miNombre.charAt(0).toUpperCase(); // Show initial instead of +
+  }
+
+  miNotaDiv.addEventListener('click', () => {
+    Swal.fire({
+      title: 'Tu estado',
+      input: 'text',
+      inputPlaceholder: '¿Qué estás pensando? (ej. Programando 💻)',
+      inputValue: miNotaObj ? miNotaObj.texto : '',
+      showCancelButton: true,
+      confirmButtonText: 'Publicar',
+      cancelButtonText: 'Borrar nota',
+      inputAttributes: {
+        maxlength: 60
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        socket.emit('nueva-nota', result.value);
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        socket.emit('nueva-nota', ''); // Borrar
+      }
+    });
+  });
+
+  notesContainer.appendChild(miNotaDiv);
+
+  // 2. Dibujar las notas de los demás usuarios
+  notasGlobales.forEach(nota => {
+    if (nota.usuario === miNombre) return; // Mi nota ya está primero
+
+    const div = document.createElement('div');
+    div.classList.add('note-item');
+
+    const bubble = document.createElement('div');
+    bubble.classList.add('note-bubble');
+    bubble.innerHTML = procesarEmojis(nota.texto);
+    div.appendChild(bubble);
+
+    const avatar = document.createElement('div');
+    avatar.classList.add('note-avatar');
+    avatar.textContent = nota.usuario.charAt(0);
+    div.appendChild(avatar);
+
+    notesContainer.appendChild(div);
+  });
+}
+
+socket.on('actualizar-notas', (notas) => {
+  notasGlobales = notas;
+  renderizarNotas();
 });

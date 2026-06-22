@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "emoji-js": "^3.9.0",
     "express": "^5.2.1",
     "firebase": "^12.14.0",

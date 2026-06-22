@@ -307,6 +307,106 @@ header .subtitle {
   transform: scale(0.95);
 }
  
+/* ─── NOTAS DE ESTADO (INSTAGRAM STYLE) ──────── */
+.notes-container {
+  display: flex;
+  gap: 16px;
+  padding: 16px 24px 8px 24px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  flex-shrink: 0;
+  min-height: 90px;
+}
+
+.notes-container::-webkit-scrollbar { height: 4px; }
+.notes-container::-webkit-scrollbar-track { background: transparent; }
+.notes-container::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.note-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 60px;
+  transition: transform 0.2s;
+}
+
+.note-item:hover {
+  transform: scale(1.05);
+}
+
+.note-bubble {
+  position: absolute;
+  top: -12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  color: var(--text);
+  white-space: nowrap;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 2;
+  transform-origin: bottom center;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.note-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.note-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--bg);
+  font-weight: 700;
+  margin-top: 14px;
+  border: 2px solid var(--surface2);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+  text-transform: uppercase;
+}
+
+.note-item.mi-nota .note-avatar {
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.note-item.mi-nota:hover .note-avatar {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.5) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 /* ─── CHAT CONTAINER ─────────────────────────── */
 #chat-container {
   flex: 1;
